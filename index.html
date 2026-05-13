@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>오늘도 출근</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/fflate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="crosshair">+</div>
+    <div id="mission-toast"></div>
+    <div id="interact-hint">E 키를 눌러 상호작용</div>
+
+    <!-- 인트로 화면 -->
+    <div id="intro-screen">
+        <div id="intro-content">
+            <div class="intro-line intro-fade" id="il1">💼 그대는 오늘도...</div>
+            <div class="intro-line intro-pop" id="il2">무사히 회사에 도착했다. ✅</div>
+            <div class="intro-line intro-mission" id="il3">📌 오늘의 미션: 어싸인 클리어</div>
+            <div class="intro-line intro-warning" id="il4">⚠️ 규칙: 단계 스킵은 금지이다.</div>
+            <div class="intro-line intro-report" id="il5">🕔 최종 미션은 타임리포트.</div>
+            <div class="intro-line intro-reward" id="il6">보상은 오직 하나...</div>
+            <div class="intro-line intro-final" id="il7">퇴근이다.</div>
+        </div>
+        <button id="intro-skip">건너뛰기</button>
+    </div>
+
+    <!-- 시작 화면 -->
+    <div id="start-screen" style="display:none;">
+        <h1>오늘도 출근</h1>
+        <p>오늘의 업무를 차근차근 처리해볼까요?</p>
+        <button id="start-btn">시작하기</button>
+    </div>
+
+    <div id="dialogue-box">
+        <div id="dialogue-speaker"></div>
+        <div id="dialogue-text"></div>
+        <div id="dialogue-next">▶ 클릭하여 계속</div>
+    </div>
+
+    <div id="npc-dialogue">
+        <div id="npc-name"></div>
+        <div id="npc-text"></div>
+        <div id="npc-choices"></div>
+        <button id="npc-close">닫기</button>
+    </div>
+
+
+
+    <!-- 컴퓨터 화면 / 브라우저 데스크톱 -->
+    <div id="computer-ui">
+        <div id="computer-window">
+            <div id="browser-topbar">
+                <div class="browser-tab active" data-app="desktop"><span>🖥️</span> Work Desktop <button>×</button></div>
+                <div class="browser-tab" data-app="connect"><span>🌐</span> 2518 <button>×</button></div>
+                <div class="browser-tab" data-app="register"><span>👤</span> Register <button>×</button></div>
+                <div class="browser-tab" data-app="bi"><span>▰</span> Power BI <button>×</button></div>
+                <div class="browser-tab" data-app="time-report"><span>📄</span> Time Report <button>×</button></div>
+                <div class="browser-plus">＋</div>
+                <button id="computer-close-btn">×</button>
+            </div>
+            <div id="browser-addressbar">
+                <span>←</span><span>→</span><span>⌂</span>
+                <div id="fake-url">pwc.local/work-desktop</div>
+                <span>⭐</span><span>👤 Y</span>
+            </div>
+            <div id="computer-body">
+                <div id="desktop-taskbar-left">
+                    <button class="task-icon connect-icon" data-app="connect" title="Connect"><span class="shortcut-icon connect">🔴</span></button>
+                    <button class="task-icon register-icon" data-app="register" title="Managed Registration"><span class="shortcut-icon register">👤</span></button>
+                    <button class="task-icon powerbi-icon" data-app="bi" title="Power BI"><span class="shortcut-icon bi">▰</span></button>
+                    <button class="task-icon time-icon" data-app="time-report" title="Time Report"><span class="shortcut-icon time">📄</span></button>
+                    <button class="task-icon teams-task-icon" data-app="teams" title="Teams"><span class="shortcut-icon teams">💬</span></button>
+                </div>
+
+                <section class="computer-app active" id="app-desktop">
+                    <div class="desktop-page">
+                        <div class="desktop-logo">pwc</div>
+                        <div class="desktop-grid">
+                            <button class="desktop-shortcut" data-app="connect"><span class="shortcut-icon connect">🔴</span><b>Connect</b><small>자료 업로드 확인</small></button>
+                            <button class="desktop-shortcut" data-app="register"><span class="shortcut-icon register">👤</span><b>Register</b><small>정보수령인 추가</small></button>
+                            <button class="desktop-shortcut" data-app="bi"><span class="shortcut-icon bi">▰</span><b>Power BI</b><small>BI 측정값 점검</small></button>
+                            <button class="desktop-shortcut" data-app="time-report"><span class="shortcut-icon time">📄</span><b>Time Report</b><small>업무 시간 작성</small></button>
+                            <button class="desktop-shortcut" data-app="teams"><span class="shortcut-icon teams">💬</span><b>Teams</b><small>단체방 공유</small></button>
+                        </div>
+                        <div class="desktop-memo">오늘의 업무 페이지를 직접 선택해서 진행하세요.</div>
+                    </div>
+                </section>
+
+                <section class="computer-app" id="app-connect">
+                    <div class="app-titlebar"><span>🔴 Connect - Team Requests</span><button class="small-close">×</button></div>
+                    <div class="connect-page">
+                        <div class="connect-header"><b>Connect</b><span>25188 삼진글로벌 Easy View</span><button>Requests</button><button>Reports</button><button>Calendar</button></div>
+                        <div class="connect-sub">46 Requests <label><input type="checkbox" checked> Show Accepted</label></div>
+                        <table class="connect-table"><thead><tr><th>Request</th><th>Status</th><th>Due Date</th><th>Request Owner</th><th>Requestees</th></tr></thead><tbody>
+                            <tr><td>35 - 2026년 01월 누적 시산표 / BS,PL</td><td><span class="status accepted">Accepted</span></td><td>01 Mar 2026</td><td>Sanghee Sim</td><td>minhyuk yoo</td></tr>
+                            <tr><td>36 - 2026년 02월 누적 시산표 / BS,PL</td><td><span class="status accepted">Accepted</span></td><td>01 Apr 2026</td><td>Sanghee Sim</td><td>minhyuk yoo</td></tr>
+                            <tr class="today-row request-click" id="connect-requested-row"><td>37 - 2026년 03월 누적 시산표 / BS,PL</td><td><span class="status requested">Requested</span></td><td>01 May 2026</td><td>Sanghee Sim</td><td>minhyuk yoo</td></tr>
+                            <tr><td>38 - 2026년 04월 누적 시산표 / BS,PL</td><td><span class="status draft">Draft</span></td><td>01 Jun 2026</td><td>Seungyeon Han</td><td>minhyuk yoo</td></tr>
+                        </tbody></table>
+                        <div class="mission-box"><b>Chapter 1</b> Connect 사이트창을 보고 단체방에 확인 채팅을 남겨보세요.</div>
+                    </div>
+                </section>
+
+                <section class="computer-app" id="app-connect-detail">
+                    <div class="app-titlebar"><span>🔴 Connect - Team Request Details</span><button class="small-close">×</button></div>
+                    <div class="connect-detail-page">
+                        <div class="connect-detail-top"><b>Connect</b><span>25188 삼진글로벌 Easy View</span><button>Summary</button><button>Reports</button><button>Calendar</button><em>Requested</em></div>
+                        <div class="detail-title">37 - 2026년 03월 누적 시산표 / BS,PL</div>
+                        <div class="detail-section-title">⌄ 업로드된 자료</div>
+                        <div class="upload-empty-box"><div class="upload-icon">⬆</div><p>파일을 끌어다 놓거나 선택하여 업로드하세요.</p><button>파일 선택</button></div>
+                        <div class="detail-bottom-note">0개의 파일이 업로드되었습니다.</div>
+                        <div class="mission-box"><b>Chapter 1</b> 업로드된 자료가 없음을 확인했으면 Teams 단체방에 공유하세요.</div>
+                    </div>
+                </section>
+
+                <section class="computer-app" id="app-register">
+                    <div class="app-titlebar"><span>👤 PwC Managed Registration</span><button class="small-close">×</button></div>
+                    <div class="register-page"><div class="reg-top"><b>pwc</b> Managed Registration <span>Home　Search　Register　Groups　Logout</span></div>
+                        <div class="reg-card"><h2>Chapter 2: Register a user</h2><button id="reg-memo-btn" class="memo-btn" type="button">📝 메모 확인하기</button><div id="reg-memo" class="reg-memo"><b>오늘 추가할 고객사 정보</b><br>회사명: <span>DONG-A CHAMMED CO., LTD.</span><br>정보수령인: <span>Noh Gayoung</span><br>이메일: <span>m2191065@donga.co.kr</span></div><label>Client email <small>(mandatory)</small><input id="reg-email" placeholder="m2191065@donga.co.kr"></label><div class="reg-row"><label>영문 성<input id="reg-last" placeholder="Noh"></label><label>영문 이름<input id="reg-first" placeholder="Gayoung"></label></div><label>회사명<input id="reg-company" placeholder="DONG-A CHAMMED CO., LTD."></label><button id="reg-complete">완료</button><div id="reg-result"></div></div>
+                    </div>
+                </section>
+
+                <section class="computer-app" id="app-bi">
+                    <div class="app-titlebar"><span>▰ Power BI - 측정값 함수 찾기</span><button class="small-close">×</button></div>
+                    <div class="dax-page"><h2>Chapter 3: 옳은 함수 찾기</h2><p class="page-sub">빈칸에 들어갈 함수를 고르세요. 앞뒤 공백 때문에 분류값이 안 맞는 상황입니다.</p><pre class="dax-code">부호변환 =
+<span class="kw">SWITCH</span>( <span class="blank">__________</span>( <span class="kw">CALCULATE</span>( <span class="kw">SELECTEDVALUE</span>('JE'[분류]), <span class="kw">ALL</span>('Calendar') ) ),
+    "수익", 1,
+    "비용", -1
+)</pre><div class="dax-options"><button data-answer="TRIM">TRIM</button><button data-answer="SUM">SUM</button><button data-answer="FORMAT">FORMAT</button><button data-answer="COUNT">COUNT</button></div><div id="dax-result"></div></div>
+                </section>
+
+                <section class="computer-app" id="app-time-report">
+                    <div class="app-titlebar"><span>📄 Time Report</span><button class="small-close">×</button></div>
+                    <div class="time-report-real"><aside class="tr-side"><h3>2026.04</h3><div class="calendar-mini">MON TUE WED THU FRI SAT SUN<br><br>27　28　<span>29</span>　30　01　02　03</div><h3>Favorite List</h3><p>⭐ Easy View 운영</p><p>⭐ 고객사 요청사항</p><p>⭐ BI 측정값 구현</p></aside><main class="tr-main"><div class="tr-summary"><b>30</b><span>hr / week</span><em>Time Report</em></div><h2>Chapter 4: 오늘 한 업무를 순서대로 작성하세요</h2><div class="tr-inputs"><input class="work-input" placeholder="1. 어싸인 확인"><input class="work-input" placeholder="2. Connect 업로드 확인 및 공유"><input class="work-input" placeholder="3. 고객사 정보 수령인 추가"><input class="work-input" placeholder="4. BI 측정값 함수 맞추기"></div><div class="answer-hint">정답 입력:<br>1. 어싸인 확인<br>2. Connect 업로드 확인 및 공유<br>3. 고객사 정보 수령인 추가<br>4. BI 측정값 함수 맞추기</div><button id="time-report-save">저장하기</button><div id="time-report-result"></div></main></div>
+                </section>
+
+                <div class="desktop-help">하단 아이콘으로 업무 페이지를 열 수 있습니다. Teams는 기존 화면 그대로 열립니다.</div>
+            </div>        </div>
+    </div>
+
+    <div id="teams-ui">
+        <div id="teams-window">
+            <div id="teams-sidebar">
+                <div class="teams-icon active">💬</div>
+                <div class="teams-icon">👥</div>
+                <div class="teams-icon">📅</div>
+                <div class="teams-icon">📁</div>
+                <div class="teams-avatar">나</div>
+            </div>
+            <div id="teams-chatlist">
+                <div id="teams-chatlist-header">채팅</div>
+                <input id="teams-search" type="text" placeholder="검색">
+                <div id="teams-chatlist-inner"></div>
+            </div>
+            <div id="teams-chatroom">
+                <div id="teams-chatroom-header">
+                    <div class="chat-avatar" id="chatroom-avatar" style="background:#c0392b">김</div>
+                    <span id="chatroom-name">김부장</span>
+                    <button id="teams-close-btn">✕</button>
+                </div>
+                <div id="teams-messages"></div>
+                <div id="teams-input-area">
+                    <input id="teams-input" type="text" placeholder="메시지를 입력하세요...">
+                    <button id="teams-send-btn">전송</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sit-overlay">ESC 또는 클릭하면 자리에서 일어납니다</div>
+    <div id="my-seat-hint">⬇ 내 자리</div>
+
+    <!-- 타자 미니게임 -->
+    <div id="minigame-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:500;">
+        <div id="minigame-content" style="background:#1a1a2e;border-radius:16px;padding:32px;max-width:600px;width:90%;text-align:center;border:1px solid #444;">
+        </div>
+    </div>
+
+
+    <!-- 출출박스 자판기 -->
+    <div id="snack-overlay" class="snack-overlay">
+        <div class="snack-panel">
+            <button class="snack-close" onclick="closeSnackBox()">×</button>
+            <div class="snack-title">출출박스 <span>우리 회사 간식 충전소</span></div>
+            <div class="snack-balance">보유 금액 <b id="snack-balance">5,000원</b></div>
+            <div id="snack-items" class="snack-items"></div>
+            <div id="snack-result" class="snack-result">먹고 싶은 간식을 선택하세요. 전부 2,000원 미만입니다.</div>
+            <div class="snack-tray"><span id="snack-tray-item">상품 배출구</span></div>
+        </div>
+    </div>
+
+    <!-- 도어락 -->
+    <div id="doorlock-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:500;">
+        <div style="background:#1a1a1a;border-radius:16px;padding:32px;width:280px;text-align:center;">
+            <div style="color:#fff;font-size:18px;font-weight:bold;margin-bottom:16px;">🔐 도어락</div>
+            <div id="doorlock-display" style="background:#000;color:#00ff00;font-size:32px;font-family:monospace;padding:12px;border-radius:8px;letter-spacing:8px;margin-bottom:8px;">____</div>
+            <div id="doorlock-result" style="height:24px;font-size:14px;margin-bottom:12px;color:white;"></div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                <button onclick="doorlockPress('1')" style="padding:16px;font-size:20px;border-radius:8px;border:none;background:#333;color:#fff;cursor:pointer;">1</button>
+                <button onclick="doorlockPress('2')" style="padding:16px;font-size:20px;border-radius:8px;border:none;background:#333;color:#fff;cursor:pointer;">2</button>
+                <button onclick="doorlockPress('3')" style="padding:16px;font-size:20px;border-radius:8px;border:none;background:#333;color:#fff;cursor:pointer;">3</button>
+                <button onclick="doorlockPress('4')" style="padding:16px;font-size:20px;border-radius:8px;border:none;background:#333;color:#fff;cursor:pointer;">4</button>
+                <button onclick="doorlockPress('5')" style="padding:16px;font-size:20px;border-radius:8px;border:none;background:#333;color:#fff;cursor:pointer;">5</button>
+                <button onclick="doorlockPress('6')" style="padding:16px;font-size:20px;border-radius:8px;border:none;background:#333;color:#fff;cursor:pointer;">6</button>
+                <button onclick="doorlockPress('7')" style="padding:16px;font-size:20px;border-radius:8px;border:none;background:#333;color:#fff;cursor:pointer;">7</button>
+                <button onclick="doorlockPress('8')" style="padding:16px;font-size:20px;border-radius:8px;border:none;background:#333;color:#fff;cursor:pointer;">8</button>
+                <button onclick="doorlockPress('9')" style="padding:16px;font-size:20px;border-radius:8px;border:none;background:#333;color:#fff;cursor:pointer;">9</button>
+                <button onclick="doorlockClear()" style="padding:16px;font-size:14px;border-radius:8px;border:none;background:#555;color:#fff;cursor:pointer;">C</button>
+                <button onclick="doorlockPress('0')" style="padding:16px;font-size:20px;border-radius:8px;border:none;background:#333;color:#fff;cursor:pointer;">0</button>
+                <button onclick="closeDoorlock()" style="padding:16px;font-size:14px;border-radius:8px;border:none;background:#555;color:#fff;cursor:pointer;">✕</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 단서 트래커 -->
+    <div id="clue-tracker" style="position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:white;padding:8px 16px;border-radius:20px;font-size:13px;display:none;z-index:200;"></div>
+
+    <!-- 엔딩 크레딧 -->
+    <div id="ending-screen" style="position:fixed;inset:0;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:1000;overflow:hidden;">
+        <div id="ending-content" style="text-align:center;color:white;">
+            <div id="ending-title" style="font-size:48px;font-weight:bold;color:#e8c96d;margin-bottom:24px;opacity:0;">🎉 업무 완료!</div>
+            <div id="ending-subtitle" style="font-size:18px;color:#aaa;margin-bottom:60px;opacity:0;">오늘의 업무를 끝까지 완료했습니다.</div>
+            <div id="credits" style="font-size:14px;color:#666;line-height:2.5;opacity:0;">
+                <div style="color:#fff;font-size:16px;margin-bottom:8px;">— 제작진 —</div>
+                <div>기획 · 개발 · 디자인</div>
+                <div style="color:#e8c96d;font-size:16px;">조유나 · 한여원 · 심상희 선생님</div>
+                <br>
+                <div>오늘도 함께한 사람들</div>
+                <div style="color:#7eb3ff;">박수정 선생님 · 정예원 선생님 · 이제승 이사님</div>
+                <br>
+                <div>퇴근 후원</div>
+                <div style="color:#aaa;">내일의 나에게 맡기기</div>
+                <br><br>
+                <div style="color:#555;font-size:12px;">Made with Three.js + GSAP</div>
+                <div style="color:#555;font-size:12px;">오늘도 고생 많으셨습니다. 이제 진짜 퇴근! 🏃</div>
+            </div>
+        </div>
+    </div>
+
+<!-- 🔊 Sounds -->
+<audio id="sfxClick" src="assets/click.wav"></audio>
+<audio id="sfxLock" src="assets/lock.wav"></audio>
+<audio id="sfxEnding" src="assets/ending.mp3"></audio>
+<audio id="bgm" src="assets/bgm.mp3" loop></audio>
+
+<script src="script.js"></script>
+</body>
+</html>
